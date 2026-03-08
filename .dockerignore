@@ -1,0 +1,18 @@
+.git
+.gitignore
+.env
+.vscode
+.idea
+.DS_Store
+README.md
+data/
+
+# Go
+backend/tmp/
+backend/vendor/
+
+# Node
+dashboard/node_modules/
+dashboard/.nuxt/
+dashboard/.output/
+dashboard/dist/
