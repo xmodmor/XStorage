@@ -38,3 +38,23 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	response.Success(c, http.StatusOK, res)
 }
+
+func (h *AuthHandler) Me(c *gin.Context) {
+	userID, exists := c.Get("userID")
+	if !exists {
+		response.Error(c, http.StatusUnauthorized, "UNAUTHORIZED", "user not found in context")
+		return
+	}
+
+	user, err := h.authService.GetCurrentUser(c.Request.Context(), userID.(uint))
+	if err != nil {
+		if errors.Is(err, service.ErrNotFound) {
+			response.Error(c, http.StatusNotFound, "NOT_FOUND", "user not found")
+			return
+		}
+		response.Error(c, http.StatusInternalServerError, "INTERNAL_ERROR", "something went wrong")
+		return
+	}
+
+	response.Success(c, http.StatusOK, user)
+}

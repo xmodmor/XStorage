@@ -44,7 +44,19 @@ func (s *AuthService) Login(ctx context.Context, req dto.LoginRequest) (*dto.Log
 		return nil, err
 	}
 
-	return &dto.LoginResponse{Token: token}, nil
+	return &dto.LoginResponse{
+		Token: token,
+		User:  dto.UserDTO{ID: user.ID, Email: user.Email, CreatedAt: user.CreatedAt},
+	}, nil
+}
+
+func (s *AuthService) GetCurrentUser(ctx context.Context, userID uint) (*dto.UserDTO, error) {
+	user, err := s.userRepo.FindByID(ctx, userID)
+	if err != nil {
+		return nil, ErrNotFound
+	}
+
+	return &dto.UserDTO{ID: user.ID, Email: user.Email, CreatedAt: user.CreatedAt}, nil
 }
 
 func (s *AuthService) generateToken(user *domain.User) (string, error) {

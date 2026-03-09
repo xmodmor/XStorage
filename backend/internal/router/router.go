@@ -35,6 +35,8 @@ func Setup(r *gin.Engine, h Handlers, jwtSecret string, apiKeyRepo repository.AP
 	dashboard := v1.Group("")
 	dashboard.Use(middleware.JWTAuth(jwtSecret))
 	{
+		dashboard.GET("/auth/me", h.Auth.Me)
+
 		dashboard.POST("/apps", h.App.Create)
 		dashboard.GET("/apps", h.App.List)
 		dashboard.GET("/apps/:id", h.App.GetByID)

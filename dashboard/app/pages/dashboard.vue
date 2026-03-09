@@ -1,6 +1,6 @@
 <template>
-  <div class="space-y-4">
+  <div>
     <h1 class="text-2xl font-bold">Dashboard</h1>
-    <p class="text-muted-foreground">Overview and usage statistics.</p>
+    <p class="text-muted-foreground mt-2">Welcome to your dashboard.</p>
   </div>
 </template>
