@@ -35,6 +35,7 @@ func main() {
 
 	// Services
 	authService := service.NewAuthService(userRepo, cfg.JWTSecret)
+	userService := service.NewUserService(userRepo)
 	appService := service.NewAppService(appRepo)
 	apiKeyService := service.NewAPIKeyService(apiKeyRepo, appRepo)
 	bucketService := service.NewBucketService(bucketRepo)
@@ -43,6 +44,7 @@ func main() {
 	// Handlers
 	handlers := router.Handlers{
 		Auth:   handler.NewAuthHandler(authService),
+		User:   handler.NewUserHandler(userService),
 		App:    handler.NewAppHandler(appService),
 		APIKey: handler.NewAPIKeyHandler(apiKeyService),
 		Bucket: handler.NewBucketHandler(bucketService),

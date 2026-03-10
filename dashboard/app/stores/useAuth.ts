@@ -1,3 +1,4 @@
+import { nextTick } from 'vue'
 import { defineStore } from 'pinia'
 import type { User, LoginCredentials, LoginData } from '@/types/auth'
 
@@ -14,7 +15,6 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = computed(() => !!token.value && !!user.value)
 
   const initialize = async () => {
-    if (isInitialized.value) return
     if (token.value) {
       try {
         await fetchUser()
@@ -53,6 +53,7 @@ export const useAuthStore = defineStore('auth', () => {
       setToken(res.data.token)
       user.value = res.data.user
 
+      await nextTick()
       await navigateTo(redirectTo ?? '/dashboard', { replace: true })
       return true
     } catch {

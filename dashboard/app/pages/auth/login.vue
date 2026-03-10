@@ -10,7 +10,7 @@ definePageMeta({
     <div class="flex flex-col gap-4 p-6 md:p-10">
       <div class="flex justify-center gap-2 md:justify-start">
         <NuxtLink to="/" class="flex items-center gap-2 font-medium group" aria-label="XStorage Home">
-          <span class="text-xl font-bold tracking-tight transition group-hover:opacity-80">XStorage</span>
+          <AppLogo mode="full" size="lg" :link-to-home="false" class="mb-4" />
         </NuxtLink>
       </div>
       <div class="flex flex-1 items-center justify-center">

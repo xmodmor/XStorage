@@ -1,12 +1,12 @@
 import { useAuthStore } from '@/stores/useAuth'
 
-const PUBLIC_PATHS = ['/', '/auth/login', '/auth/register', '/auth/forgot-password']
+const PUBLIC_PATHS = ['/', '/auth/login']
 
 export default defineNuxtRouteMiddleware(async (to) => {
   const isPublic = PUBLIC_PATHS.includes(to.path) || to.path.startsWith('/docs')
   const auth = useAuthStore()
 
-  if (!auth.isInitialized) {
+  if (!auth.isInitialized || (auth.token && !auth.user)) {
     await auth.initialize()
   }
 

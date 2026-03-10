@@ -12,6 +12,7 @@ import (
 
 type Handlers struct {
 	Auth   *handler.AuthHandler
+	User   *handler.UserHandler
 	App    *handler.AppHandler
 	APIKey *handler.APIKeyHandler
 	Bucket *handler.BucketHandler
@@ -36,6 +37,12 @@ func Setup(r *gin.Engine, h Handlers, jwtSecret string, apiKeyRepo repository.AP
 	dashboard.Use(middleware.JWTAuth(jwtSecret))
 	{
 		dashboard.GET("/auth/me", h.Auth.Me)
+
+		dashboard.GET("/users", h.User.List)
+		dashboard.POST("/users", h.User.Create)
+		dashboard.GET("/users/:id", h.User.GetByID)
+		dashboard.PUT("/users/:id", h.User.Update)
+		dashboard.DELETE("/users/:id", h.User.Delete)
 
 		dashboard.POST("/apps", h.App.Create)
 		dashboard.GET("/apps", h.App.List)
