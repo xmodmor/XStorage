@@ -35,7 +35,7 @@ services:
       - storage_data:/data
       - /etc/ssl/certs:/etc/ssl/certs:ro
     environment:
-      PORT: "8080"
+      PORT: "8881"
       DATABASE_URL: postgres://${POSTGRES_USER:-xstorage}:${POSTGRES_PASSWORD:-xstorage}@127.0.0.1:${POSTGRES_PORT:-5440}/${POSTGRES_DB:-xstorage}?sslmode=disable
       STORAGE_PATH: /data
       JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
@@ -62,7 +62,7 @@ services:
       PORT: "8880"
       NITRO_PORT: "8880"
       HOST: "0.0.0.0"
-      NUXT_PUBLIC_API_BASE: ${NUXT_PUBLIC_API_BASE:-http://127.0.0.1:8080}
+      NUXT_PUBLIC_API_BASE: ${NUXT_PUBLIC_API_BASE:-http://127.0.0.1:8881}
     depends_on:
       - backend
     logging:
