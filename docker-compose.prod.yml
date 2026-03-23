@@ -1,5 +1,5 @@
 # Prod: same stack as docker-compose.yml; backend/dashboard from ghcr.io/${IMAGE_REPOSITORY}:<tag>.
-# Host network: Postgres ${POSTGRES_PORT:-5440}, backend 8080, dashboard 8880; NUXT_PUBLIC_API_BASE for browser → API.
+# Host network: Postgres ${POSTGRES_PORT:-5440}, backend 8881, dashboard 8880; NUXT_PUBLIC_API_BASE for browser → API.
 
 name: xstorage-app
 

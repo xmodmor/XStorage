@@ -19,6 +19,6 @@ COPY --from=builder /build/migrations ./migrations
 
 RUN mkdir -p /data
 
-EXPOSE 8080
+EXPOSE 8881
 
 CMD ["./api"]
