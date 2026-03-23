@@ -32,3 +32,4 @@ Thumbs.db
 
 # Storage data
 data/
+.secret
