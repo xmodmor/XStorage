@@ -113,6 +113,13 @@ jobs:
             set -eu
             cd /home/xstorage/app
 
+            # Ensure server uses latest workflow/compose from repository
+            if [ -d .git ]; then
+              git fetch --all --prune
+              git checkout main
+              git pull --ff-only origin main
+            fi
+
             # Backup current env file
             if [ -f .env ]; then
               cp .env .env.backup
@@ -144,6 +151,15 @@ jobs:
             IMAGE_REPOSITORY="$(echo "${IMAGE_REPOSITORY:-$RAW_GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')"
             export IMAGE_REPOSITORY
             echo "Using IMAGE_REPOSITORY=${IMAGE_REPOSITORY}"
+
+            # Validate DB settings to avoid host/name mix-ups (e.g. POSTGRES_DB=localhost)
+            case "${POSTGRES_DB}" in
+              localhost|127.0.0.1|0.0.0.0)
+                echo "Error: POSTGRES_DB is invalid (${POSTGRES_DB}). Set it to your database name (e.g. xstorage)."
+                exit 1
+                ;;
+            esac
+            echo "Using DB host=${POSTGRES_HOST} port=${POSTGRES_PORT} user=${POSTGRES_USER} db=${POSTGRES_DB}"
 
             set_env "POSTGRES_HOST" "${POSTGRES_HOST}"
             set_env "POSTGRES_PORT" "${POSTGRES_PORT}"
