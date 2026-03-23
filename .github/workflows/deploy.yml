@@ -100,7 +100,7 @@ jobs:
           POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           GITHUB_SHA: ${{ github.sha }}
-          GITHUB_REPOSITORY: ${{ env.IMAGE_NAME }}
+          IMAGE_REPOSITORY: ${{ env.IMAGE_NAME }}
           RAW_GITHUB_REPOSITORY: ${{ github.repository }}
           DOCKER_REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -108,8 +108,9 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          envs: POSTGRES_PASSWORD,POSTGRES_HOST,POSTGRES_USER,POSTGRES_DB,POSTGRES_PORT,JWT_SECRET,GITHUB_SHA,GITHUB_REPOSITORY,RAW_GITHUB_REPOSITORY,DOCKER_REGISTRY_TOKEN,DEBUG,LOG_LEVEL
+          envs: POSTGRES_PASSWORD,POSTGRES_HOST,POSTGRES_USER,POSTGRES_DB,POSTGRES_PORT,JWT_SECRET,GITHUB_SHA,IMAGE_REPOSITORY,RAW_GITHUB_REPOSITORY,DOCKER_REGISTRY_TOKEN,DEBUG,LOG_LEVEL
           script: |
+            set -eu
             cd /home/xstorage/app
 
             # Backup current env file
@@ -140,8 +141,9 @@ jobs:
               printf '%s=%s\n' "$key" "$value" >> .env
             }
 
-            IMAGE_REPOSITORY="$(echo "${GITHUB_REPOSITORY:-$RAW_GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')"
+            IMAGE_REPOSITORY="$(echo "${IMAGE_REPOSITORY:-$RAW_GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')"
             export IMAGE_REPOSITORY
+            echo "Using IMAGE_REPOSITORY=${IMAGE_REPOSITORY}"
 
             set_env "POSTGRES_HOST" "${POSTGRES_HOST}"
             set_env "POSTGRES_PORT" "${POSTGRES_PORT}"
@@ -150,6 +152,9 @@ jobs:
             set_env "POSTGRES_DB" "${POSTGRES_DB}"
             set_env "JWT_SECRET" "${JWT_SECRET}"
             set_env "IMAGE_REPOSITORY" "${IMAGE_REPOSITORY}"
+            # Backward compatibility if server still has old compose using GITHUB_REPOSITORY
+            set_env "GITHUB_REPOSITORY" "${IMAGE_REPOSITORY}"
+            export GITHUB_REPOSITORY="${IMAGE_REPOSITORY}"
             
             # Login to GitHub Container Registry
             echo $DOCKER_REGISTRY_TOKEN | docker login ghcr.io -u ${{ github.actor }} --password-stdin
