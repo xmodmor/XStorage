@@ -1,0 +1,79 @@
+# Prod: same stack as docker-compose.yml; backend/dashboard from ghcr.io/${GITHUB_REPOSITORY}:<tag>.
+# Host network: Postgres ${POSTGRES_PORT:-5440}, backend 8080, dashboard 8880; NUXT_PUBLIC_API_BASE for browser → API.
+
+name: xstorage-app
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    network_mode: host
+    command: postgres -p ${POSTGRES_PORT:-5440}
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-xstorage}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-xstorage}
+      POSTGRES_DB: ${POSTGRES_DB:-xstorage}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-xstorage} -p ${POSTGRES_PORT:-5440}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        tag: "{{.Name}}"
+
+  backend:
+    image: ghcr.io/${GITHUB_REPOSITORY}:backend
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - storage_data:/data
+      - /etc/ssl/certs:/etc/ssl/certs:ro
+    environment:
+      PORT: "8080"
+      DATABASE_URL: postgres://${POSTGRES_USER:-xstorage}:${POSTGRES_PASSWORD:-xstorage}@127.0.0.1:${POSTGRES_PORT:-5440}/${POSTGRES_DB:-xstorage}?sslmode=disable
+      STORAGE_PATH: /data
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      SSL_CERT_DIR: /etc/ssl/certs
+      REQUESTS_CA_BUNDLE: /etc/ssl/certs/ca-certificates.crt
+      CURL_CA_BUNDLE: /etc/ssl/certs/ca-certificates.crt
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      ENVIRONMENT: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        tag: "{{.Name}}"
+
+  dashboard:
+    image: ghcr.io/${GITHUB_REPOSITORY}:dashboard
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      PORT: "8880"
+      NITRO_PORT: "8880"
+      HOST: "0.0.0.0"
+      NUXT_PUBLIC_API_BASE: ${NUXT_PUBLIC_API_BASE:-http://127.0.0.1:8080}
+    depends_on:
+      - backend
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        tag: "{{.Name}}"
+
+volumes:
+  pgdata:
+    name: xstorage-pgdata
+  storage_data:
+    name: xstorage-storage-data
