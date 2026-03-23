@@ -101,13 +101,14 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           GITHUB_SHA: ${{ github.sha }}
           GITHUB_REPOSITORY: ${{ env.IMAGE_NAME }}
+          RAW_GITHUB_REPOSITORY: ${{ github.repository }}
           DOCKER_REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           host: ${{ secrets.SERVER_HOST }}
           port: ${{ secrets.SERVER_PORT }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          envs: POSTGRES_PASSWORD,POSTGRES_HOST,POSTGRES_USER,POSTGRES_DB,POSTGRES_PORT,JWT_SECRET,GITHUB_SHA,GITHUB_REPOSITORY,DOCKER_REGISTRY_TOKEN,DEBUG,LOG_LEVEL
+          envs: POSTGRES_PASSWORD,POSTGRES_HOST,POSTGRES_USER,POSTGRES_DB,POSTGRES_PORT,JWT_SECRET,GITHUB_SHA,GITHUB_REPOSITORY,RAW_GITHUB_REPOSITORY,DOCKER_REGISTRY_TOKEN,DEBUG,LOG_LEVEL
           script: |
             cd /home/xstorage/app
 
@@ -116,18 +117,39 @@ jobs:
               cp .env .env.backup
             fi
 
-            # Copy template file
-            cp .env.template .env
+            # Build .env from template if available; otherwise generate from secrets
+            TEMPLATE_FILE=""
+            if [ -f .env.template ]; then
+              TEMPLATE_FILE=".env.template"
+            elif [ -f .env.templat ]; then
+              TEMPLATE_FILE=".env.templat"
+            elif [ -f .env.example ]; then
+              TEMPLATE_FILE=".env.example"
+            fi
 
-            # Replace environment variables in the template
-            sed -i "s|\${POSTGRES_HOST}|${POSTGRES_HOST}|g" .env
-            sed -i "s|\${POSTGRES_PORT}|${POSTGRES_PORT}|g" .env
-            sed -i "s|\${POSTGRES_USER}|${POSTGRES_USER}|g" .env
-            sed -i "s|\${POSTGRES_PASSWORD}|${POSTGRES_PASSWORD}|g" .env
-            sed -i "s|\${POSTGRES_DB}|${POSTGRES_DB}|g" .env
-            sed -i "s|\${JWT_SECRET}|${JWT_SECRET}|g" .env
+            if [ -n "$TEMPLATE_FILE" ]; then
+              cp "$TEMPLATE_FILE" .env
+            else
+              : > .env
+            fi
 
-            echo "GITHUB_REPOSITORY=${GITHUB_REPOSITORY}" >> .env
+            set_env() {
+              key="$1"
+              value="$2"
+              sed -i "/^${key}=.*/d" .env
+              printf '%s=%s\n' "$key" "$value" >> .env
+            }
+
+            IMAGE_REPOSITORY="$(echo "${GITHUB_REPOSITORY:-$RAW_GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')"
+            export IMAGE_REPOSITORY
+
+            set_env "POSTGRES_HOST" "${POSTGRES_HOST}"
+            set_env "POSTGRES_PORT" "${POSTGRES_PORT}"
+            set_env "POSTGRES_USER" "${POSTGRES_USER}"
+            set_env "POSTGRES_PASSWORD" "${POSTGRES_PASSWORD}"
+            set_env "POSTGRES_DB" "${POSTGRES_DB}"
+            set_env "JWT_SECRET" "${JWT_SECRET}"
+            set_env "IMAGE_REPOSITORY" "${IMAGE_REPOSITORY}"
             
             # Login to GitHub Container Registry
             echo $DOCKER_REGISTRY_TOKEN | docker login ghcr.io -u ${{ github.actor }} --password-stdin

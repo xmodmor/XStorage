@@ -1,4 +1,4 @@
-# Prod: same stack as docker-compose.yml; backend/dashboard from ghcr.io/${GITHUB_REPOSITORY}:<tag>.
+# Prod: same stack as docker-compose.yml; backend/dashboard from ghcr.io/${IMAGE_REPOSITORY}:<tag>.
 # Host network: Postgres ${POSTGRES_PORT:-5440}, backend 8080, dashboard 8880; NUXT_PUBLIC_API_BASE for browser → API.
 
 name: xstorage-app
@@ -28,7 +28,7 @@ services:
         tag: "{{.Name}}"
 
   backend:
-    image: ghcr.io/${GITHUB_REPOSITORY}:backend
+    image: ghcr.io/${IMAGE_REPOSITORY}:backend
     restart: unless-stopped
     network_mode: host
     volumes:
@@ -55,7 +55,7 @@ services:
         tag: "{{.Name}}"
 
   dashboard:
-    image: ghcr.io/${GITHUB_REPOSITORY}:dashboard
+    image: ghcr.io/${IMAGE_REPOSITORY}:dashboard
     restart: unless-stopped
     network_mode: host
     environment:
