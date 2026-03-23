@@ -16,3 +16,4 @@ dashboard/node_modules/
 dashboard/.nuxt/
 dashboard/.output/
 dashboard/dist/
+.secret
